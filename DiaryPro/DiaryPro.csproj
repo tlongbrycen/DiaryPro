@@ -122,6 +122,8 @@
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Models\DataAccess.cs" />
+    <Compile Include="Models\NoteModel.cs" />
     <Compile Include="NavigationParams\NavParamBase.cs" />
     <Compile Include="NavigationParams\NavParamHomeToNote.cs" />
     <Compile Include="NavigationParams\NavParamMainToHome.cs" />
@@ -145,8 +147,12 @@
     <Content Include="Assets\gnd_green_852x480.jpg" />
     <Content Include="Assets\icon_back_512x512.png" />
     <Content Include="Assets\icon_file_512x512.png" />
+    <Content Include="Assets\icon_left_512x512.png" />
     <Content Include="Assets\icon_note_462x598.png" />
+    <Content Include="Assets\icon_plus_840x800.png" />
+    <Content Include="Assets\icon_right_512x512.png" />
     <Content Include="Assets\icon_search_512x512.png" />
+    <Content Include="Assets\icon_trash_512x512.png" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />
@@ -179,6 +185,9 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite">
+      <Version>5.0.6</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.2.10</Version>
     </PackageReference>

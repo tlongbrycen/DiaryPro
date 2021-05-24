@@ -24,7 +24,10 @@
             <Grid Grid.Row="0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="1*"></ColumnDefinition>
-                    <ColumnDefinition Width="4*"></ColumnDefinition>
+                    <ColumnDefinition Width="1*"></ColumnDefinition>
+                    <ColumnDefinition Width="1*"></ColumnDefinition>
+                    <ColumnDefinition Width="1*"></ColumnDefinition>
+                    <ColumnDefinition Width="1*"></ColumnDefinition>
                 </Grid.ColumnDefinitions>
                 <Grid Grid.Column="0">
                     <Button x:Name="btnBack"
@@ -34,6 +37,54 @@
                         Click="btnBack_Click">
                         <Button.Background>
                             <ImageBrush ImageSource="ms-appx:///Assets/icon_back_512x512.png"
+                                        Stretch="Fill"></ImageBrush>
+                        </Button.Background>
+                    </Button>
+                </Grid>
+                <Grid Grid.Column="1">
+                    <Button x:Name="btnNew"
+                        VerticalAlignment="Stretch"
+                        HorizontalAlignment="Stretch"
+                        Margin="10, 10, 10, 10"
+                        Click="btnNew_Click">
+                        <Button.Background>
+                            <ImageBrush ImageSource="ms-appx:///Assets/icon_plus_840x800.png"
+                                        Stretch="Fill"></ImageBrush>
+                        </Button.Background>
+                    </Button>
+                </Grid>
+                <Grid Grid.Column="2">
+                    <Button x:Name="btnDelete"
+                        VerticalAlignment="Stretch"
+                        HorizontalAlignment="Stretch"
+                        Margin="10, 10, 10, 10"
+                        Click="btnDelete_Click">
+                        <Button.Background>
+                            <ImageBrush ImageSource="ms-appx:///Assets/icon_trash_512x512.png"
+                                        Stretch="Fill"></ImageBrush>
+                        </Button.Background>
+                    </Button>
+                </Grid>
+                <Grid Grid.Column="4">
+                    <Button x:Name="btnRight"
+                        VerticalAlignment="Stretch"
+                        HorizontalAlignment="Stretch"
+                        Margin="10, 10, 10, 10"
+                        Click="btnRight_Click">
+                        <Button.Background>
+                            <ImageBrush ImageSource="ms-appx:///Assets/icon_right_512x512.png"
+                                        Stretch="Fill"></ImageBrush>
+                        </Button.Background>
+                    </Button>
+                </Grid>
+                <Grid Grid.Column="3">
+                    <Button x:Name="btnLeft"
+                        VerticalAlignment="Stretch"
+                        HorizontalAlignment="Stretch"
+                        Margin="10, 10, 10, 10"
+                        Click="btnLeft_Click">
+                        <Button.Background>
+                            <ImageBrush ImageSource="ms-appx:///Assets/icon_left_512x512.png"
                                         Stretch="Fill"></ImageBrush>
                         </Button.Background>
                     </Button>
@@ -57,6 +108,11 @@
                                HorizontalAlignment="Right"></TextBlock>
                 </StackPanel>
             </Grid>
+        </Grid>
+        <Grid Grid.Row="1" Grid.Column="0">
+            <ListView x:Name="listViewNote">
+                
+            </ListView>
         </Grid>
     </Grid>
 </Page>

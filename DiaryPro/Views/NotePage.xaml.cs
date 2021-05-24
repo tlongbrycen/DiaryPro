@@ -48,5 +48,25 @@ namespace DiaryPro
                 Frame.GoBack();
             }
         }
+
+        private void btnNew_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnDelete_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnRight_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void btnLeft_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
