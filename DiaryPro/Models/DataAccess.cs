@@ -76,14 +76,41 @@ namespace DiaryPro.Models
                     + ", @" + DB_NOTE_TABLE_CONTENT
                     + "); ";
                 insertCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_DATE, note.date);
-                insertCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_HEADER, note.date);
-                insertCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_CONTENT, note.date);
+                insertCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_HEADER, note.header);
+                insertCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_CONTENT, note.content);
 
                 insertCommand.ExecuteReader();
 
-                db.Close();
-            }
+                // AUTOINCREMENTのDB_NOTE_TABLE_PKEYを取得
+                Int64 lastInsertID = 0;
+                insertCommand.CommandText = "SELECT last_insert_rowid();";
+                insertCommand.Parameters.Clear();
+                using (var query = insertCommand.ExecuteReader())
+                {
+                    query.Read();
+                    lastInsertID = query.GetInt64(0);
+                }
 
+                db.Close();
+
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+
+                foreach(byte[] img in note.images)
+                {
+                    db.Open();
+                    insertCommand.Connection = db;
+                    insertCommand.CommandText = "INSERT INTO " + DB_IMG_TABLE_NAME + " VALUES (NULL, @" + DB_IMG_TABLE_BYTES
+                    + ", @" + DB_NOTE_TABLE_PKEY
+                    + "); ";
+                    insertCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_PKEY, lastInsertID);
+                    insertCommand.Parameters.AddWithValue("@" + DB_IMG_TABLE_BYTES, img);
+                    insertCommand.ExecuteReader();
+                    db.Close();
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                }
+            }
         }
 
         public static List<String> GetData()
