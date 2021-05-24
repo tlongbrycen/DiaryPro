@@ -1,0 +1,62 @@
+﻿<Page
+    x:Class="DiaryPro.NotePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:DiaryPro"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1.5*"></RowDefinition>
+            <RowDefinition Height="8.5*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"></ColumnDefinition>
+            <ColumnDefinition Width="4*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid Grid.Row="0" Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="2*"></RowDefinition>
+                <RowDefinition Height="1*"></RowDefinition>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"></ColumnDefinition>
+                    <ColumnDefinition Width="4*"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <Grid Grid.Column="0">
+                    <Button x:Name="btnBack"
+                        VerticalAlignment="Stretch"
+                        HorizontalAlignment="Stretch"
+                        Margin="10, 10, 10, 10"
+                        Click="btnBack_Click">
+                        <Button.Background>
+                            <ImageBrush ImageSource="ms-appx:///Assets/icon_back_512x512.png"
+                                        Stretch="Fill"></ImageBrush>
+                        </Button.Background>
+                    </Button>
+                </Grid>
+            </Grid>
+            <Grid Grid.Row="1">
+                <StackPanel Margin="5, 5, 5, 5"
+                            Orientation="Horizontal"
+                            BorderBrush="#16791b"
+                            BorderThickness="2">
+                    <Button x:Name="btnSearch"
+                            Margin="5,0,0,0">
+                        <Button.Background>
+                            <ImageBrush ImageSource="ms-appx:///Assets/icon_search_512x512.png"
+                                        Stretch="Fill"></ImageBrush>
+                        </Button.Background>
+                    </Button>
+                    <TextBlock x:Name="tbSearch"
+                               Text="Search"
+                               Margin="15,0,0,0"
+                               HorizontalAlignment="Right"></TextBlock>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Grid>
+</Page>

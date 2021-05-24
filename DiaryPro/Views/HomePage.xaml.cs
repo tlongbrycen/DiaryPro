@@ -30,7 +30,6 @@ namespace DiaryPro
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            SetTextDateTime();
             if (e.Parameter != null)
             {
                 NavParamBase navParam = (NavParamBase)e.Parameter;
@@ -42,10 +41,17 @@ namespace DiaryPro
             }
         }
 
-        private void SetTextDateTime()
+        private void btnNote_Click(object sender, RoutedEventArgs e)
         {
-            txtDateTime.Text = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
+            NavParamHomeToNote navParam = new NavParamHomeToNote();
+            navParam.SourcePage = typeof(HomePage);
+            navParam.TargetPage = typeof(NotePage);
+            Frame.Navigate(typeof(NotePage), navParam);
         }
-           
+
+        private void btnFile_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

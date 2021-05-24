@@ -21,25 +21,15 @@ namespace DiaryPro
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class MainPage : Page
+    public sealed partial class BlankPage : Page
     {
-        public MainPage()
+        public BlankPage()
         {
             this.InitializeComponent();
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
-            SetTextDateTime();
-            NavParamMainToHome navParam = new NavParamMainToHome();
-            navParam.SourcePage = typeof(MainPage);
-            navParam.TargetPage = typeof(HomePage);
-            MainFrame.Navigate(typeof(HomePage), navParam);
-        }
-
-        private void SetTextDateTime()
-        {
-            txtDateTime.Text = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
         }
     }
 }
