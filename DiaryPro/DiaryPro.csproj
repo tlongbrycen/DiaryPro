@@ -122,8 +122,9 @@
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Models\DataAccess.cs" />
+    <Compile Include="Models\DataAccessModel.cs" />
     <Compile Include="Models\NoteModel.cs" />
+    <Compile Include="Models\UtilityModel.cs" />
     <Compile Include="NavigationParams\NavParamBase.cs" />
     <Compile Include="NavigationParams\NavParamHomeToNote.cs" />
     <Compile Include="NavigationParams\NavParamMainToHome.cs" />

@@ -11,11 +11,22 @@ namespace DiaryPro.Models
         public string header;
         public string date;
         public string content;
-        public List<byte[]> images;
+        public List<ImgModel> images;
 
         public NoteModel()
         {
-            images = new List<byte[]>();
+            images = new List<ImgModel>();
+        }
+    }
+
+    class ImgModel
+    {
+        public string descript;
+        public byte[] img;
+
+        public ImgModel()
+        {
+            img = new byte[] {};
         }
     }
 }

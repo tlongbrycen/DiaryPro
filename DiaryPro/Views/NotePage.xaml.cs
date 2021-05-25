@@ -1,6 +1,8 @@
-﻿using DiaryPro.NavigationParams;
+﻿using DiaryPro.Models;
+using DiaryPro.NavigationParams;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -28,6 +30,10 @@ namespace DiaryPro
             this.InitializeComponent();
         }
 
+        private static readonly int MAX_RECORD_PER_PAGE = 10;
+
+        private ObservableCollection<NoteModel> noteModelCollection;
+
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             if (e.Parameter != null)
@@ -37,6 +43,7 @@ namespace DiaryPro
                     navParam.TargetPage.Equals(typeof(NotePage)))
                 {
                     string request = ((NavParamHomeToNote)navParam).ExtraCommand;
+                    noteModelCollection = DataAccessModel.GetData(MAX_RECORD_PER_PAGE, 0);
                 }
             }
         }
