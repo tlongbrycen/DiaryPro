@@ -8,6 +8,7 @@ namespace DiaryPro.Models
 {
     class NoteModel
     {
+        public int ID;
         public string header;
         public string date;
         public string content;
@@ -15,6 +16,19 @@ namespace DiaryPro.Models
 
         public NoteModel()
         {
+            ID = -1;
+            header = "";
+            date = "";
+            content = "";
+            images = new List<ImgModel>();
+        }
+
+        public NoteModel(string p_date)
+        {
+            ID = -1;
+            header = "";
+            date = p_date;
+            content = "";
             images = new List<ImgModel>();
         }
     }

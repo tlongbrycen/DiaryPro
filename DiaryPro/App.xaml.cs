@@ -34,7 +34,7 @@ namespace DiaryPro
         public App()
         {
             //起動時にアプリWindowsサイズ設定
-            ApplicationView.PreferredLaunchViewSize = new Size { Height = 768, Width = 1366 };
+            ApplicationView.PreferredLaunchViewSize = new Size { Height = 768, Width = 1250 };
             ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
             this.InitializeComponent();
             this.Suspending += OnSuspending;

@@ -59,10 +59,14 @@ namespace DiaryPro.Models
                     SqliteCommand createTable = new SqliteCommand(tableCommand, db);
                     createTable.ExecuteReader();
                 }
+
+                db.Close();
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
             }
         }
 
-        public static void AddData(NoteModel note)
+        public static int AddData(NoteModel note)
         {
             string dbpath = Path.Combine(ApplicationData.Current.LocalFolder.Path, DB_FILENAME);
             using (SqliteConnection db =
@@ -85,14 +89,14 @@ namespace DiaryPro.Models
                 using (var query = insertCommand.ExecuteReader()) { }
 
                 // AUTOINCREMENTのDB_NOTE_TABLE_PKEYを取得
-                Int64 lastInsertID = 0;
+                int lastInsertID = -1;
                 insertCommand.CommandText = "SELECT last_insert_rowid();";
                 insertCommand.Parameters.Clear();
                 using (var query = insertCommand.ExecuteReader())
                 {
                     while (query.Read())
                     {
-                        lastInsertID = query.GetInt64(0);
+                        lastInsertID = query.GetInt32(0);
                     }
                 }
 
@@ -118,6 +122,8 @@ namespace DiaryPro.Models
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
                 }
+
+                return lastInsertID;
             }
         }
 
@@ -175,7 +181,6 @@ namespace DiaryPro.Models
         public static ObservableCollection<NoteModel> GetData(int limit, int offset)
         {
             ObservableCollection<NoteModel> notes = new ObservableCollection<NoteModel>();
-            List<int> noteIDs = new List<int>();
 
             string dbpath = Path.Combine(ApplicationData.Current.LocalFolder.Path, DB_FILENAME);
             using (SqliteConnection db =
@@ -185,6 +190,7 @@ namespace DiaryPro.Models
 
                 SqliteCommand selectCommand = new SqliteCommand
                     ("SELECT * FROM " + DB_NOTE_TABLE_NAME +
+                    " ORDER BY " + DB_NOTE_TABLE_DATE + " DESC " +
                     " LIMIT " + limit +
                     " OFFSET " + offset, db);
 
@@ -193,11 +199,11 @@ namespace DiaryPro.Models
                     while (query.Read())
                     {
                         NoteModel note = new NoteModel();
+                        note.ID = query.GetInt32(0);
                         note.date = query.GetString(1);
                         note.header = query.GetString(2);
                         note.content = query.GetString(3);
                         notes.Add(note);
-                        noteIDs.Add(query.GetInt32(0));
                     }
                 }
 
@@ -205,13 +211,13 @@ namespace DiaryPro.Models
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
 
-                for(int i = 0; i < noteIDs.Count; i++)
+                foreach(NoteModel note in notes)
                 {
                     db.Open();
 
                     selectCommand = new SqliteCommand
                     ("SELECT * FROM " + DB_IMG_TABLE_NAME +
-                    " WHERE " + DB_NOTE_TABLE_PKEY + " = " + noteIDs[i]
+                    " WHERE " + DB_NOTE_TABLE_PKEY + " = " + note.ID
                     , db);
 
                     using (var query = selectCommand.ExecuteReader())
@@ -222,7 +228,7 @@ namespace DiaryPro.Models
                             image.descript = query.GetString(2);
                             image.img = new byte[query.GetStream(1).Length];
                             query.GetStream(1).CopyTo(new MemoryStream(image.img, true));
-                            notes[i].images.Add(image);
+                            note.images.Add(image);
                         }    
                     }
 
@@ -232,6 +238,31 @@ namespace DiaryPro.Models
                 }    
             }
             return notes;
+        }
+
+        public static void DeleteData(int noteID)
+        {
+            string dbpath = Path.Combine(ApplicationData.Current.LocalFolder.Path, DB_FILENAME);
+            using (SqliteConnection db =
+              new SqliteConnection($"Filename={dbpath}"))
+            {
+                db.Open();
+
+                SqliteCommand insertCommand = new SqliteCommand();
+                insertCommand.Connection = db;
+
+                // Use parameterized query to prevent SQL injection attacks
+                insertCommand.CommandText = "DELETE FROM " + DB_NOTE_TABLE_NAME + 
+                    " WHERE " + DB_NOTE_TABLE_PKEY + " = @" + DB_NOTE_TABLE_PKEY;
+                insertCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_PKEY, noteID);
+
+                using (var query = insertCommand.ExecuteReader()) { }
+
+                db.Close();
+
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
         }
     }
 }

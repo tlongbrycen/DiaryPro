@@ -112,7 +112,9 @@
         </Grid>
         <Grid Grid.Row="1" Grid.Column="0">
             <ListView x:Name="listViewNote"
-                      ItemsSource="{x:Bind noteModelCollection}">
+                      ItemsSource="{x:Bind noteModelCollection}"
+                      IsItemClickEnabled="True"
+                      ItemClick="listViewNote_ItemClick">
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
                         <Setter Property="VerticalContentAlignment" Value="Top" />
@@ -181,6 +183,141 @@
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
+        </Grid>
+        <Grid Grid.Row="0" Grid.Column="1"
+              BorderBrush="#16791b"
+              BorderThickness="2"
+              Margin="5,5,5,5">
+            <TextBox x:Name="tbHeader"
+                       VerticalAlignment="Stretch"
+                       HorizontalAlignment="Stretch"
+                       TextAlignment="Left"
+                       Text="Header"
+                       FontSize="65"
+                       TextWrapping="Wrap"
+                       Background="#B2FFB5"
+                       TextChanged="tbHeader_TextChanged"></TextBox>
+        </Grid>
+        <Grid Grid.Row="1" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="7*"></RowDefinition>
+                <RowDefinition Height="3*"></RowDefinition>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0"
+                  BorderBrush="#16791b"
+                  BorderThickness="2"
+                  Margin="5,5,5,5">
+                <TextBox x:Name="tbContent"
+                         Margin="0,0,0,0"
+                         VerticalAlignment="Stretch"
+                         HorizontalAlignment="Stretch"
+                         TextAlignment="Left"
+                         Text="Content"
+                         FontSize="18"
+                         TextWrapping="Wrap"
+                         Background="#B2FFB5">
+                </TextBox>
+            </Grid>
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="6*"></ColumnDefinition>
+                    <ColumnDefinition Width="4*"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <Grid Grid.Column="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="3*"></ColumnDefinition>
+                        <ColumnDefinition Width="7*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Grid Grid.Column="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"></RowDefinition>
+                            <RowDefinition Height="1*"></RowDefinition>
+                            <RowDefinition Height="1*"></RowDefinition>
+                            <RowDefinition Height="1*"></RowDefinition>
+                        </Grid.RowDefinitions>
+                        <Button Grid.Row="0"
+                                VerticalAlignment="Stretch"
+                                HorizontalAlignment="Stretch"
+                                x:Name="btnImgUp"
+                                Click="btnImgUp_Click">
+                            <Button.Background>
+                                <ImageBrush ImageSource="ms-appx:///Assets/icon_up_512x512.png"
+                                        Stretch="Fill"></ImageBrush>
+                            </Button.Background>
+                        </Button>
+                        <Button Grid.Row="1"
+                                VerticalAlignment="Stretch"
+                                HorizontalAlignment="Stretch"
+                                x:Name="btnImgAdd"
+                                Click="btnImgAdd_Click">
+                            <Button.Background>
+                                <ImageBrush ImageSource="ms-appx:///Assets/icon_plus_840x800.png"
+                                        Stretch="Fill"></ImageBrush>
+                            </Button.Background>
+                        </Button>
+                        <Button Grid.Row="2"
+                                VerticalAlignment="Stretch"
+                                HorizontalAlignment="Stretch"
+                                x:Name="btnImgRemove"
+                                Click="btnImgRemove_Click">
+                            <Button.Background>
+                                <ImageBrush ImageSource="ms-appx:///Assets/icon_trash_512x512.png"
+                                        Stretch="Fill"></ImageBrush>
+                            </Button.Background>
+                        </Button>
+                        <Button Grid.Row="3"
+                                VerticalAlignment="Stretch"
+                                HorizontalAlignment="Stretch"
+                                x:Name="btnImgDown"
+                                Click="btnImgDown_Click">
+                            <Button.Background>
+                                <ImageBrush ImageSource="ms-appx:///Assets/icon_down_512x512.png"
+                                        Stretch="Fill"></ImageBrush>
+                            </Button.Background>
+                        </Button>
+                    </Grid>
+                    <Grid Grid.Column="1">
+                        <Border BorderBrush="#16791b"
+                                BorderThickness="2"
+                                Margin="5, 5, 5, 5">
+                            <Image></Image>
+                        </Border>
+                    </Grid>
+                </Grid>
+                <Grid Grid.Column="1"
+                      BorderBrush="#16791b"
+                      BorderThickness="2"
+                      Margin="5,5,5,5">
+                    <StackPanel Orientation="Vertical"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="Font Size"
+                                   Style="{StaticResource SubtitleTextBlockStyle}"
+                                   Margin="5, 5, 5, 5">
+                        </TextBlock>
+                        <Slider x:Name="sldrHeader"
+                                Minimum="60"
+                                Maximum="70"
+                                TickFrequency="10"
+                                TickPlacement="Inline"
+                                Header="Header"
+                                Margin="25, 5, 5, 5"
+                                Value="65"
+                                ValueChanged="sldrHeader_ValueChanged">
+                        </Slider>
+                        <Slider x:Name="sldrContent"
+                                Minimum="10"
+                                Maximum="20"
+                                TickFrequency="10"
+                                TickPlacement="Inline"
+                                Header="Content"
+                                Margin="25, 5, 5, 5"
+                                Value="15"
+                                ValueChanged="sldrContent_ValueChanged">
+                        </Slider>
+                    </StackPanel>
+                </Grid>
+            </Grid>
         </Grid>
     </Grid>
 </Page>
