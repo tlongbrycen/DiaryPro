@@ -157,6 +157,7 @@
     <Content Include="Assets\icon_trash_512x512.png" />
     <Content Include="Assets\icon_up_512x512.png" />
     <Content Include="Assets\img_border_900x460.png" />
+    <Content Include="Assets\sapa.jpg" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />

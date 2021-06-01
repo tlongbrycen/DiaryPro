@@ -280,7 +280,18 @@
                         <Border BorderBrush="#16791b"
                                 BorderThickness="2"
                                 Margin="5, 5, 5, 5">
-                            <Image></Image>
+                            <Canvas x:Name="canvasNoteImg" 
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Stretch">
+                                <Image x:Name="imgNote"
+                                       Width="{Binding Path=ActualWidth, ElementName=canvasNoteImg}" 
+                                       Height="{Binding Path=ActualHeight, ElementName=canvasNoteImg}"
+                                       Stretch="Fill"></Image>
+                                <Image Source="ms-appx:///Assets/img_border_900x460.png"
+                                       Width="{Binding Path=ActualWidth, ElementName=canvasNoteImg}" 
+                                       Height="{Binding Path=ActualHeight, ElementName=canvasNoteImg}"
+                                       Stretch="Fill"></Image>
+                            </Canvas>
                         </Border>
                     </Grid>
                 </Grid>
