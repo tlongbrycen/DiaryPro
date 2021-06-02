@@ -31,7 +31,6 @@ namespace DiaryPro.Models
             using (SqliteConnection db =
                new SqliteConnection($"Filename={dbpath}"))
             {
-                db.Open();
                 List<String> tableCommands = new List<string>();
 
                 String str = "CREATE TABLE IF NOT " +
@@ -55,14 +54,18 @@ namespace DiaryPro.Models
 
                 foreach (String tableCommand in tableCommands)
                 {
+                    db.Open();
                     Trace.WriteLine("DB Command: " + tableCommand);
-                    SqliteCommand createTable = new SqliteCommand(tableCommand, db);
-                    createTable.ExecuteReader();
+                    using (SqliteCommand createTableCommand = new SqliteCommand(tableCommand, db))
+                    {
+                        using (var query = createTableCommand.ExecuteReader()) { }
+                        createTableCommand.Dispose();
+                    }
+                    db.Close();
+                    db.Dispose();
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
                 }
-
-                db.Close();
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
             }
         }
 
@@ -74,54 +77,114 @@ namespace DiaryPro.Models
             {
                 db.Open();
 
-                SqliteCommand insertCommand = new SqliteCommand();
-                insertCommand.Connection = db;
-
-                // Use parameterized query to prevent SQL injection attacks
-                insertCommand.CommandText = "INSERT INTO " + DB_NOTE_TABLE_NAME + " VALUES (NULL, @" + DB_NOTE_TABLE_DATE
-                    + ", @" + DB_NOTE_TABLE_HEADER
-                    + ", @" + DB_NOTE_TABLE_CONTENT
-                    + "); ";
-                insertCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_DATE, note.date);
-                insertCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_HEADER, note.header);
-                insertCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_CONTENT, note.content);
-
-                using (var query = insertCommand.ExecuteReader()) { }
-
-                // AUTOINCREMENTのDB_NOTE_TABLE_PKEYを取得
                 int lastInsertID = -1;
-                insertCommand.CommandText = "SELECT last_insert_rowid();";
-                insertCommand.Parameters.Clear();
-                using (var query = insertCommand.ExecuteReader())
+
+                using (SqliteCommand insertCommand = new SqliteCommand())
                 {
-                    while (query.Read())
+                    insertCommand.Connection = db;
+
+                    // Use parameterized query to prevent SQL injection attacks
+                    insertCommand.CommandText = "INSERT INTO " + DB_NOTE_TABLE_NAME + " VALUES (NULL, @" + DB_NOTE_TABLE_DATE
+                        + ", @" + DB_NOTE_TABLE_HEADER
+                        + ", @" + DB_NOTE_TABLE_CONTENT
+                        + "); ";
+                    insertCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_DATE, note.date);
+                    insertCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_HEADER, note.header);
+                    insertCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_CONTENT, note.content);
+
+                    using (var query = insertCommand.ExecuteReader()) { }
+
+                    // AUTOINCREMENTのDB_NOTE_TABLE_PKEYを取得
+                    insertCommand.CommandText = "SELECT last_insert_rowid();";
+                    insertCommand.Parameters.Clear();
+                    using (var query = insertCommand.ExecuteReader())
                     {
-                        lastInsertID = query.GetInt32(0);
+                        while (query.Read())
+                        {
+                            lastInsertID = query.GetInt32(0);
+                        }
                     }
-                }
+
+                    insertCommand.Dispose();
+                }    
 
                 db.Close();
-
+                db.Dispose();
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
 
                 foreach(ImgModel image in note.images)
                 {
                     db.Open();
-                    insertCommand.Connection = db;
-                    insertCommand.CommandText = "INSERT INTO " + DB_IMG_TABLE_NAME + " VALUES (NULL, @" + DB_IMG_TABLE_BYTES
-                    + ", @" + DB_IMG_TABLE_DESCRIPT
-                    + ", @" + DB_NOTE_TABLE_PKEY
-                    + "); ";
-                    insertCommand.Parameters.Clear();
-                    insertCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_PKEY, lastInsertID);
-                    insertCommand.Parameters.AddWithValue("@" + DB_IMG_TABLE_DESCRIPT, image.descript);
-                    insertCommand.Parameters.AddWithValue("@" + DB_IMG_TABLE_BYTES, image.img);
-                    using (var query = insertCommand.ExecuteReader()) { }
+
+                    using (SqliteCommand insertCommand = new SqliteCommand())
+                    {
+                        insertCommand.Connection = db;
+                        insertCommand.CommandText = "INSERT INTO " + DB_IMG_TABLE_NAME + " VALUES (NULL, @" + DB_IMG_TABLE_BYTES
+                        + ", @" + DB_IMG_TABLE_DESCRIPT
+                        + ", @" + DB_NOTE_TABLE_PKEY
+                        + "); ";
+                        insertCommand.Parameters.Clear();
+                        insertCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_PKEY, lastInsertID);
+                        insertCommand.Parameters.AddWithValue("@" + DB_IMG_TABLE_DESCRIPT, image.descript);
+                        insertCommand.Parameters.AddWithValue("@" + DB_IMG_TABLE_BYTES, image.img);
+                        using (var query = insertCommand.ExecuteReader()) { }
+                        insertCommand.Dispose();
+                    } 
                     db.Close();
+                    db.Dispose();
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
                 }
+
+                return lastInsertID;
+            }
+        }
+
+        public static int AddData(ImgModel image, int noteID)
+        {
+            string dbpath = Path.Combine(ApplicationData.Current.LocalFolder.Path, DB_FILENAME);
+            using (SqliteConnection db =
+              new SqliteConnection($"Filename={dbpath}"))
+            {
+                db.Open();
+
+                int lastInsertID = -1;
+
+                using (SqliteCommand insertCommand = new SqliteCommand())
+                {
+                    insertCommand.Connection = db;
+
+                    // Use parameterized query to prevent SQL injection attacks
+                    insertCommand.CommandText = "INSERT INTO " + DB_IMG_TABLE_NAME + " VALUES (NULL, @" + DB_IMG_TABLE_BYTES
+                        + ", @" + DB_IMG_TABLE_DESCRIPT
+                        + ", @" + DB_NOTE_TABLE_PKEY
+                        + "); ";
+                    insertCommand.Parameters.AddWithValue("@" + DB_IMG_TABLE_BYTES, image.img);
+                    insertCommand.Parameters.AddWithValue("@" + DB_IMG_TABLE_DESCRIPT, image.descript);
+                    insertCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_PKEY, noteID);
+
+                    using (var query = insertCommand.ExecuteReader()) { }
+
+                    // AUTOINCREMENTのDB_IMG_TABLE_PKEYを取得
+
+                    insertCommand.CommandText = "SELECT last_insert_rowid();";
+                    insertCommand.Parameters.Clear();
+                    using (var query = insertCommand.ExecuteReader())
+                    {
+                        while (query.Read())
+                        {
+                            lastInsertID = query.GetInt32(0);
+                        }
+                    }
+
+                    insertCommand.Dispose();
+                }    
+                
+                db.Close();
+                db.Dispose();
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
 
                 return lastInsertID;
             }
@@ -143,9 +206,9 @@ namespace DiaryPro.Models
                     " ON " + DB_NOTE_TABLE_NAME + "." + DB_NOTE_TABLE_PKEY + " = "
                     + DB_IMG_TABLE_NAME + "." + DB_NOTE_TABLE_PKEY, db);
 
-                int oldNoteTableID = -1;
-                int newNoteTableID = -1;
-                NoteModel note = new NoteModel();
+                    int oldNoteTableID = -1;
+                    int newNoteTableID = -1;
+                    NoteModel note = new NoteModel();
                 using (var query = selectCommand.ExecuteReader())
                 {
                     while (query.Read())
@@ -155,7 +218,7 @@ namespace DiaryPro.Models
                         image.img = new byte[query.GetStream(5).Length];
                         query.GetStream(5).CopyTo(new MemoryStream(image.img, true));
                         newNoteTableID = query.GetInt32(0);
-                        if(newNoteTableID != oldNoteTableID)
+                        if (newNoteTableID != oldNoteTableID)
                         {
                             oldNoteTableID = newNoteTableID;
                             note = new NoteModel();
@@ -168,10 +231,12 @@ namespace DiaryPro.Models
                         else
                         {
                             note.images.Add(image);
-                        }    
+                        }
                     }
                 }
+                selectCommand.Dispose();
                 db.Close();
+                db.Dispose();
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
                 return notes;
@@ -188,26 +253,29 @@ namespace DiaryPro.Models
             {
                 db.Open();
 
-                SqliteCommand selectCommand = new SqliteCommand
-                    ("SELECT * FROM " + DB_NOTE_TABLE_NAME +
-                    " ORDER BY " + DB_NOTE_TABLE_DATE + " DESC " +
-                    " LIMIT " + limit +
-                    " OFFSET " + offset, db);
-
-                using (var query = selectCommand.ExecuteReader()) 
+                using (SqliteCommand selectCommand = new SqliteCommand
+                        ("SELECT * FROM " + DB_NOTE_TABLE_NAME +
+                        " ORDER BY " + DB_NOTE_TABLE_DATE + " DESC " +
+                        " LIMIT " + limit +
+                        " OFFSET " + offset, db))
                 {
-                    while (query.Read())
+                    using (var query = selectCommand.ExecuteReader())
                     {
-                        NoteModel note = new NoteModel();
-                        note.ID = query.GetInt32(0);
-                        note.date = query.GetString(1);
-                        note.header = query.GetString(2);
-                        note.content = query.GetString(3);
-                        notes.Add(note);
+                        while (query.Read())
+                        {
+                            NoteModel note = new NoteModel();
+                            note.ID = query.GetInt32(0);
+                            note.date = query.GetString(1);
+                            note.header = query.GetString(2);
+                            note.content = query.GetString(3);
+                            notes.Add(note);
+                        }
                     }
+                    selectCommand.Dispose();
                 }
-
+                
                 db.Close();
+                db.Dispose();
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
 
@@ -215,24 +283,27 @@ namespace DiaryPro.Models
                 {
                     db.Open();
 
-                    selectCommand = new SqliteCommand
+                    using (SqliteCommand selectCommand = new SqliteCommand
                     ("SELECT * FROM " + DB_IMG_TABLE_NAME +
                     " WHERE " + DB_NOTE_TABLE_PKEY + " = " + note.ID
-                    , db);
-
-                    using (var query = selectCommand.ExecuteReader())
+                    , db))
                     {
-                        while(query.Read())
+                        using (var query = selectCommand.ExecuteReader())
                         {
-                            ImgModel image = new ImgModel();
-                            image.descript = query.GetString(2);
-                            image.img = new byte[query.GetStream(1).Length];
-                            query.GetStream(1).CopyTo(new MemoryStream(image.img, true));
-                            note.images.Add(image);
-                        }    
+                            while (query.Read())
+                            {
+                                ImgModel image = new ImgModel();
+                                image.descript = query.GetString(2);
+                                image.img = new byte[query.GetStream(1).Length];
+                                query.GetStream(1).CopyTo(new MemoryStream(image.img, true));
+                                note.images.Add(image);
+                            }
+                        }
+                        selectCommand.Dispose();
                     }
 
                     db.Close();
+                    db.Dispose();
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
                 }    
@@ -248,18 +319,44 @@ namespace DiaryPro.Models
             {
                 db.Open();
 
-                SqliteCommand insertCommand = new SqliteCommand();
-                insertCommand.Connection = db;
+                using (SqliteCommand deleteCommand = new SqliteCommand())
+                {
+                    deleteCommand.Connection = db;
 
-                // Use parameterized query to prevent SQL injection attacks
-                insertCommand.CommandText = "DELETE FROM " + DB_NOTE_TABLE_NAME + 
+                    // Use parameterized query to prevent SQL injection attacks
+                    deleteCommand.CommandText = "DELETE FROM " + DB_IMG_TABLE_NAME +
+                        " WHERE " + DB_NOTE_TABLE_PKEY + " = @" + DB_NOTE_TABLE_PKEY;
+                    deleteCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_PKEY, noteID);
+
+                    using (var query = deleteCommand.ExecuteReader()) { }
+
+                    deleteCommand.Dispose();
+                }    
+                
+                db.Close();
+                db.Dispose();
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+
+                db.Open();
+
+                using (SqliteCommand deleteCommand = new SqliteCommand())
+                {
+                    deleteCommand.Connection = db;
+
+                    // Use parameterized query to prevent SQL injection attacks
+                    deleteCommand.CommandText = "DELETE FROM " + DB_NOTE_TABLE_NAME +
                     " WHERE " + DB_NOTE_TABLE_PKEY + " = @" + DB_NOTE_TABLE_PKEY;
-                insertCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_PKEY, noteID);
+                    deleteCommand.Parameters.Clear();
+                    deleteCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_PKEY, noteID);
 
-                using (var query = insertCommand.ExecuteReader()) { }
+                    using (var query = deleteCommand.ExecuteReader()) { }
+
+                    deleteCommand.Dispose();
+                }   
 
                 db.Close();
-
+                db.Dispose();
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
             }

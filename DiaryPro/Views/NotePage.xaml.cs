@@ -9,12 +9,14 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Storage;
+using Windows.Storage.Streams;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Imaging;
 using Windows.UI.Xaml.Navigation;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
@@ -33,13 +35,11 @@ namespace DiaryPro
 
         private static readonly int MAX_RECORD_PER_PAGE = 10;
 
-        private static readonly string TMP_NOTE_FILE_NAME = "tmp_note.dat";
-
         private ObservableCollection<NoteModel> noteModelCollection;
 
-        private int selectedIndex = -1;
+        private int selectedNoteIndex = -1;
 
-        private StorageFile tmpNoteFile;
+        private int selectedImgIndex = -1;
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
@@ -50,6 +50,7 @@ namespace DiaryPro
                     navParam.TargetPage.Equals(typeof(NotePage)))
                 {
                     string request = ((NavParamHomeToNote)navParam).ExtraCommand;
+                    //noteModelCollection = DataAccessModel.GetAllData();
                     noteModelCollection = DataAccessModel.GetData(MAX_RECORD_PER_PAGE, 0);
                     tbHeader.FontSize = sldrHeader.Value;
                     tbContent.FontSize = sldrContent.Value;
@@ -57,6 +58,15 @@ namespace DiaryPro
                     {
                         tbHeader.Text = noteModelCollection[0].header;
                         tbContent.Text = noteModelCollection[0].content;
+                        listViewNote.SelectedItem = noteModelCollection[0];
+                        selectedNoteIndex = 0;
+                        if(noteModelCollection[0].images.Count > 0)
+                        {
+                            imgNote.Source = UtilityModel.BytesToImage(
+                                noteModelCollection[0].images[0].img);
+                            tbImgDescript.Text = noteModelCollection[0].images[0].descript;
+                            selectedImgIndex = 0;
+                        }
                     }
                 }
             }
@@ -77,12 +87,46 @@ namespace DiaryPro
             note.content = "Content";
             note.date = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
             note.ID = DataAccessModel.AddData(note);
+            if (note.ID == -1) return;
             noteModelCollection.Insert(0, note);
+            listViewNote.SelectedItem = noteModelCollection[0];
+            selectedNoteIndex = 0;
+            if (noteModelCollection[selectedNoteIndex].images.Count > 0)
+            {
+                imgNote.Source = UtilityModel.BytesToImage(
+                    noteModelCollection[selectedNoteIndex].images[0].img);
+                tbImgDescript.Text = noteModelCollection[selectedNoteIndex].images[0].descript;
+                selectedImgIndex = 0;
+            }
+            else
+            {
+                imgNote.Source = null;
+                tbImgDescript.Text = "";
+                selectedImgIndex = -1;
+            }
         }
 
         private void btnDelete_Click(object sender, RoutedEventArgs e)
         {
-            DataAccessModel.DeleteData(noteModelCollection[selectedIndex].ID);
+            DataAccessModel.DeleteData(noteModelCollection[selectedNoteIndex].ID);
+            noteModelCollection.RemoveAt(selectedNoteIndex);
+            if (selectedNoteIndex > 0)
+            {
+                selectedNoteIndex = selectedNoteIndex - 1;
+                listViewNote.SelectedItem = noteModelCollection[selectedNoteIndex];
+            }
+            else
+            {
+                if(noteModelCollection.Count > 0)
+                {
+                    selectedNoteIndex = 0;
+                    listViewNote.SelectedItem = noteModelCollection[selectedNoteIndex];
+                }
+                else
+                {
+                    selectedNoteIndex = -1;
+                }
+            }
         }
 
         private void btnRight_Click(object sender, RoutedEventArgs e)
@@ -127,9 +171,22 @@ namespace DiaryPro
         {
             ListView listView = (ListView)sender;
             var clickedMenuItem = (NoteModel)e.ClickedItem;
-            selectedIndex = listView.Items.IndexOf(clickedMenuItem);
-            tbHeader.Text = noteModelCollection[selectedIndex].header;
-            tbContent.Text = noteModelCollection[selectedIndex].content;
+            selectedNoteIndex = listView.Items.IndexOf(clickedMenuItem);
+            tbHeader.Text = noteModelCollection[selectedNoteIndex].header;
+            tbContent.Text = noteModelCollection[selectedNoteIndex].content;
+            if(noteModelCollection[selectedNoteIndex].images.Count > 0)
+            {
+                imgNote.Source = UtilityModel.BytesToImage(
+                    noteModelCollection[selectedNoteIndex].images[0].img);
+                tbImgDescript.Text = noteModelCollection[selectedNoteIndex].images[0].descript;
+                selectedImgIndex = 0;
+            }
+            else
+            {
+                imgNote.Source = null;
+                tbImgDescript.Text = "";
+                selectedImgIndex = -1;
+            }    
         }
 
         private void tbHeader_TextChanged(object sender, TextChangedEventArgs e)
@@ -139,7 +196,19 @@ namespace DiaryPro
 
         private void btnImgUp_Click(object sender, RoutedEventArgs e)
         {
-
+            if (selectedNoteIndex == -1) return;
+            if (selectedImgIndex == -1) return;
+            if (selectedImgIndex == 0)
+            {
+                selectedImgIndex = noteModelCollection[selectedNoteIndex].images.Count - 1;
+            }
+            else
+            {
+                selectedImgIndex = selectedImgIndex - 1;
+            }
+            imgNote.Source = UtilityModel.BytesToImage(
+                noteModelCollection[selectedNoteIndex].images[selectedImgIndex].img);
+            tbImgDescript.Text = noteModelCollection[selectedNoteIndex].images[selectedImgIndex].descript;
         }
 
         private void btnImgDown_Click(object sender, RoutedEventArgs e)
@@ -147,9 +216,42 @@ namespace DiaryPro
 
         }
 
-        private void btnImgAdd_Click(object sender, RoutedEventArgs e)
+        private async void btnImgAdd_Click(object sender, RoutedEventArgs e)
         {
-
+            if (selectedNoteIndex == -1) return;
+            // FilePickerでイメージファイル選択画面を開く
+            var picker = new Windows.Storage.Pickers.FileOpenPicker();
+            picker.ViewMode = Windows.Storage.Pickers.PickerViewMode.Thumbnail;
+            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.PicturesLibrary;
+            picker.FileTypeFilter.Add(".jpg");
+            picker.FileTypeFilter.Add(".jpeg");
+            picker.FileTypeFilter.Add(".png");
+            StorageFile imgFile = await picker.PickSingleFileAsync();
+            if (imgFile == null) return;
+            // 選択されたイメージファイルを保存する
+            ImgModel img = new ImgModel();
+            img.descript = tbImgDescript.Text;
+            img.img = await UtilityModel.FileToByteAsync(imgFile);
+            var insertID = DataAccessModel.AddData(img, noteModelCollection[selectedNoteIndex].ID);
+            if (insertID == -1) return;
+            // イメージファイルを表示する
+            using (IRandomAccessStream fileStream = await imgFile.OpenAsync(FileAccessMode.Read))
+            {
+                // Set the image source to the selected bitmap
+                BitmapImage bitmapImage = new BitmapImage();
+                await bitmapImage.SetSourceAsync(fileStream);
+                imgNote.Source = bitmapImage;
+            }
+            //　イメージの選択されているインデックス
+            noteModelCollection[selectedNoteIndex].images.Add(img);
+            if (noteModelCollection[selectedNoteIndex].images.Count > 0)
+            {
+                selectedImgIndex = selectedImgIndex + 1;
+            }
+            else
+            {
+                selectedImgIndex = 0;
+            }
         }
 
         private void btnImgRemove_Click(object sender, RoutedEventArgs e)
