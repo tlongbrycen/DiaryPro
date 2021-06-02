@@ -38,7 +38,11 @@ namespace DiaryPro
             ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
             this.InitializeComponent();
             this.Suspending += OnSuspending;
-            DataAccessModel.InitializeDatabase();
+            var initDB = Task.Run(async () =>
+            {
+                await DataAccessModel.InitializeDatabase();
+            });
+            initDB.Wait();
             Trace.WriteLine("AppFolder: " + ApplicationData.Current.LocalFolder.Path);
             /*var t = Task.Run(async () => {
                 await TestDBAsync();

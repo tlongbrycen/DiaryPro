@@ -24,7 +24,7 @@ namespace DiaryPro.Models
         public static string DB_IMG_TABLE_BYTES = "ImgTableBytes";
         public static string DB_IMG_TABLE_DESCRIPT = "ImgTableDes";
 
-        public async static void InitializeDatabase()
+        public async static Task InitializeDatabase()
         {
             await ApplicationData.Current.LocalFolder.CreateFileAsync(DB_FILENAME, CreationCollisionOption.OpenIfExists);
             string dbpath = Path.Combine(ApplicationData.Current.LocalFolder.Path, DB_FILENAME);
@@ -61,8 +61,8 @@ namespace DiaryPro.Models
                         using (var query = createTableCommand.ExecuteReader()) { }
                         createTableCommand.Dispose();
                     }
-                    db.Close();
                     db.Dispose();
+                    db.Close();
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
                 }
@@ -94,6 +94,9 @@ namespace DiaryPro.Models
 
                     using (var query = insertCommand.ExecuteReader()) { }
 
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+
                     // AUTOINCREMENTのDB_NOTE_TABLE_PKEYを取得
                     insertCommand.CommandText = "SELECT last_insert_rowid();";
                     insertCommand.Parameters.Clear();
@@ -106,10 +109,9 @@ namespace DiaryPro.Models
                     }
 
                     insertCommand.Dispose();
-                }    
-
-                db.Close();
+                }
                 db.Dispose();
+                db.Close();
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
 
@@ -130,9 +132,9 @@ namespace DiaryPro.Models
                         insertCommand.Parameters.AddWithValue("@" + DB_IMG_TABLE_BYTES, image.img);
                         using (var query = insertCommand.ExecuteReader()) { }
                         insertCommand.Dispose();
-                    } 
-                    db.Close();
+                    }
                     db.Dispose();
+                    db.Close();
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
                 }
@@ -147,12 +149,13 @@ namespace DiaryPro.Models
             using (SqliteConnection db =
               new SqliteConnection($"Filename={dbpath}"))
             {
-                db.Open();
-
+                
                 int lastInsertID = -1;
 
                 using (SqliteCommand insertCommand = new SqliteCommand())
                 {
+                    db.Open();
+
                     insertCommand.Connection = db;
 
                     // Use parameterized query to prevent SQL injection attacks
@@ -164,7 +167,13 @@ namespace DiaryPro.Models
                     insertCommand.Parameters.AddWithValue("@" + DB_IMG_TABLE_DESCRIPT, image.descript);
                     insertCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_PKEY, noteID);
 
-                    using (var query = insertCommand.ExecuteReader()) { }
+                    using (var query = insertCommand.ExecuteReader()) 
+                    {
+                        
+                    }
+
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
 
                     // AUTOINCREMENTのDB_IMG_TABLE_PKEYを取得
 
@@ -179,12 +188,11 @@ namespace DiaryPro.Models
                     }
 
                     insertCommand.Dispose();
+                    db.Dispose();
+                    db.Close();
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
                 }    
-                
-                db.Close();
-                db.Dispose();
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
 
                 return lastInsertID;
             }
@@ -235,8 +243,8 @@ namespace DiaryPro.Models
                     }
                 }
                 selectCommand.Dispose();
-                db.Close();
                 db.Dispose();
+                db.Close();
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
                 return notes;
@@ -273,9 +281,8 @@ namespace DiaryPro.Models
                     }
                     selectCommand.Dispose();
                 }
-                
-                db.Close();
                 db.Dispose();
+                db.Close();
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
 
@@ -301,9 +308,8 @@ namespace DiaryPro.Models
                         }
                         selectCommand.Dispose();
                     }
-
-                    db.Close();
                     db.Dispose();
+                    db.Close();
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
                 }    
@@ -331,10 +337,9 @@ namespace DiaryPro.Models
                     using (var query = deleteCommand.ExecuteReader()) { }
 
                     deleteCommand.Dispose();
-                }    
-                
-                db.Close();
+                }
                 db.Dispose();
+                db.Close();
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
 
@@ -353,10 +358,9 @@ namespace DiaryPro.Models
                     using (var query = deleteCommand.ExecuteReader()) { }
 
                     deleteCommand.Dispose();
-                }   
-
-                db.Close();
+                }
                 db.Dispose();
+                db.Close();
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
             }
