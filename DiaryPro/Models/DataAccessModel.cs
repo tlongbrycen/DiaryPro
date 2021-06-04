@@ -163,10 +163,9 @@ namespace DiaryPro.Models
             }
         }
 
-        public static ObservableCollection<NoteModel> GetData(int limit, int offset)
+        public static ObservableCollection<NoteModel> GetData(ObservableCollection<NoteModel> notes, int limit, int offset)
         {
-            ObservableCollection<NoteModel> notes = new ObservableCollection<NoteModel>();
-
+            notes.Clear();
             string dbpath = Path.Combine(ApplicationData.Current.LocalFolder.Path, DB_FILENAME);
             using (SqliteConnection db =  new SqliteConnection($"Filename={dbpath}"))
             {                

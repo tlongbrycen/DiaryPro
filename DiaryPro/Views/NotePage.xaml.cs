@@ -34,9 +34,11 @@ namespace DiaryPro
             this.InitializeComponent();
         }
 
-        private static readonly int MAX_RECORD_PER_PAGE = 10;
+        private static readonly int MAX_RECORD_PER_PAGE = 9;
 
-        private ObservableCollection<NoteModel> noteModelCollection;
+        private int offsetRecord = 0;
+
+        private ObservableCollection<NoteModel> noteModelCollection = new ObservableCollection<NoteModel>();
 
         private int selectedNoteIndex = -1;
 
@@ -51,29 +53,34 @@ namespace DiaryPro
                     navParam.TargetPage.Equals(typeof(NotePage)))
                 {
                     string request = ((NavParamHomeToNote)navParam).ExtraCommand;
-                    //noteModelCollection = DataAccessModel.GetAllData();
-                    noteModelCollection = DataAccessModel.GetData(MAX_RECORD_PER_PAGE, 0);
+                    offsetRecord = 0;
+                    LoadItemFromDB();
                     tbHeader.FontSize = sldrHeader.Value;
                     tbContent.FontSize = sldrContent.Value;
-                    if (noteModelCollection.Count > 0)
-                    {
-                        tbHeader.Text = noteModelCollection[0].header;
-                        tbContent.Text = noteModelCollection[0].content;
-                        listViewNote.SelectedItem = noteModelCollection[0];
-                        selectedNoteIndex = 0;
-                        if(noteModelCollection[0].images.Count > 0)
-                        {
-                            imgNote.Source = UtilityModel.BytesToImage(
-                                noteModelCollection[0].images[0].img);
-                            tbImgDescript.Text = noteModelCollection[0].images[0].descript;
-                            selectedImgIndex = 0;
-                            tbImgDescript.IsEnabled = true;
-                        }
-                        else
-                        {
-                            tbImgDescript.IsEnabled = false;
-                        }    
-                    }
+                }
+            }
+        }
+
+        private void LoadItemFromDB()
+        {
+            noteModelCollection = DataAccessModel.GetData(noteModelCollection, MAX_RECORD_PER_PAGE, offsetRecord);
+            if (noteModelCollection.Count > 0)
+            {
+                tbHeader.Text = noteModelCollection[0].header;
+                tbContent.Text = noteModelCollection[0].content;
+                listViewNote.SelectedItem = noteModelCollection[0];
+                selectedNoteIndex = 0;
+                if (noteModelCollection[0].images.Count > 0)
+                {
+                    imgNote.Source = UtilityModel.BytesToImage(
+                        noteModelCollection[0].images[0].img);
+                    tbImgDescript.Text = noteModelCollection[0].images[0].descript;
+                    selectedImgIndex = 0;
+                    tbImgDescript.IsEnabled = true;
+                }
+                else
+                {
+                    tbImgDescript.IsEnabled = false;
                 }
             }
         }
@@ -94,6 +101,10 @@ namespace DiaryPro
             note.date = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
             note.ID = DataAccessModel.AddData(note);
             if (note.ID == -1) return;
+            if(noteModelCollection.Count == MAX_RECORD_PER_PAGE)
+            {
+                noteModelCollection.RemoveAt(MAX_RECORD_PER_PAGE - 1);
+            }
             noteModelCollection.Insert(0, note);
             listViewNote.SelectedItem = noteModelCollection[0];
             selectedNoteIndex = 0;
@@ -125,12 +136,22 @@ namespace DiaryPro
 
         private void btnRight_Click(object sender, RoutedEventArgs e)
         {
-
+            if(noteModelCollection.Count < MAX_RECORD_PER_PAGE)
+            {
+                return;
+            }
+            offsetRecord += MAX_RECORD_PER_PAGE;
+            LoadItemFromDB();
         }
 
         private void btnLeft_Click(object sender, RoutedEventArgs e)
         {
-
+            if (offsetRecord < MAX_RECORD_PER_PAGE)
+            {
+                return;
+            }
+            offsetRecord -= MAX_RECORD_PER_PAGE;
+            LoadItemFromDB();
         }
 
         private void sldrHeader_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
@@ -189,7 +210,10 @@ namespace DiaryPro
 
         private void tbHeader_TextChanged(object sender, TextChangedEventArgs e)
         {
-            noteModelCollection[selectedNoteIndex].header = tbHeader.Text;
+            NoteModel note = noteModelCollection[selectedNoteIndex];
+            note.header = tbHeader.Text;
+            noteModelCollection.RemoveAt(selectedNoteIndex);
+            noteModelCollection.Insert(selectedNoteIndex, note);
             NoteCache.Add(noteModelCollection[selectedNoteIndex]);
         }
 
@@ -280,7 +304,10 @@ namespace DiaryPro
 
         private void tbContent_TextChanged(object sender, TextChangedEventArgs e)
         {
-            noteModelCollection[selectedNoteIndex].content = tbContent.Text;
+            NoteModel note = noteModelCollection[selectedNoteIndex];
+            note.content = tbContent.Text;
+            noteModelCollection.RemoveAt(selectedNoteIndex);
+            noteModelCollection.Insert(selectedNoteIndex, note);
             NoteCache.Add(noteModelCollection[selectedNoteIndex]);
         }
 
