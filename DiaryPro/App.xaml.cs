@@ -109,7 +109,9 @@ namespace DiaryPro
             //TODO: Save application state and stop any background activity
             Trace.WriteLine("App OnSuspending");
             NoteCache.Save();
+            NoteCache.Clear();
             ImageCache.Save();
+            ImageCache.Clear();
             Trace.WriteLine("Cache Saved");
             deferral.Complete();
         }
