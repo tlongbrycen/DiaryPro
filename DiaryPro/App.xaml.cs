@@ -1,4 +1,5 @@
-﻿using DiaryPro.Models;
+﻿using DiaryPro.Cache;
+using DiaryPro.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -40,10 +41,8 @@ namespace DiaryPro
             this.Suspending += OnSuspending;
             DataAccessModel.InitializeDatabase();
             Trace.WriteLine("AppFolder: " + ApplicationData.Current.LocalFolder.Path);
-            /*var t = Task.Run(async () => {
-                await TestDBAsync();
-            });
-            t.Wait();*/
+            NoteCache.Init();
+            ImageCache.Init();
         }
 
         /// <summary>
@@ -108,34 +107,11 @@ namespace DiaryPro
         {
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: Save application state and stop any background activity
+            Trace.WriteLine("App OnSuspending");
+            NoteCache.Save();
+            ImageCache.Save();
+            Trace.WriteLine("Cache Saved");
             deferral.Complete();
-        }
-
-        /// <summary>
-        /// For test DataAccessModel
-        /// </summary>
-        /// <returns></returns>
-        private async Task TestDBAsync()
-        {
-            //Create a note with dummy data
-            NoteModel note = new NoteModel();
-            note.header = "header";
-            note.content = "content";
-            note.date = DateTime.Now.ToString("yyyy/MM/dd HH/mm/ss");
-            note.images = new List<ImgModel>();
-            StorageFile imgFile = await StorageFile.GetFileFromApplicationUriAsync(
-                new Uri("ms-appx:///Assets/icon_note_462x598.png"));
-            for (int i = 0; i < 3; i++)
-            {
-                ImgModel image = new ImgModel();
-                image.descript = i.ToString();
-                image.img = await UtilityModel.FileToByteAsync(imgFile);
-                note.images.Add(image);
-            }
-            //Try insert the note to DB
-            DataAccessModel.AddData(note);
-            //Try get the note in DB
-            DataAccessModel.GetAllData();
         }
     }
 }

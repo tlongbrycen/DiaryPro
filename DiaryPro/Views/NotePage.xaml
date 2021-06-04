@@ -213,6 +213,7 @@
                          HorizontalAlignment="Stretch"
                          TextAlignment="Left"
                          Text="Content"
+                         TextChanged="tbContent_TextChanged"
                          FontSize="18"
                          TextWrapping="Wrap"
                          Background="#B2FFB5">
@@ -305,7 +306,8 @@
                                        HorizontalAlignment="Stretch"
                                        VerticalAlignment="Stretch"
                                        TextWrapping="Wrap"
-                                       Text="Image Short Description"></TextBox>
+                                       Text="Image Short Description"
+                                       TextChanged="tbImgDescript_TextChanged"></TextBox>
                         </Border>
                     </Grid>
                 </Grid>

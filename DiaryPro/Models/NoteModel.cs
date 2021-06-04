@@ -35,6 +35,7 @@ namespace DiaryPro.Models
 
     class ImgModel
     {
+        public int ID;
         public string descript;
         public byte[] img;
 

@@ -1,4 +1,5 @@
-﻿using DiaryPro.Models;
+﻿using DiaryPro.Cache;
+using DiaryPro.Models;
 using DiaryPro.NavigationParams;
 using System;
 using System.Collections.Generic;
@@ -66,7 +67,12 @@ namespace DiaryPro
                                 noteModelCollection[0].images[0].img);
                             tbImgDescript.Text = noteModelCollection[0].images[0].descript;
                             selectedImgIndex = 0;
+                            tbImgDescript.IsEnabled = true;
                         }
+                        else
+                        {
+                            tbImgDescript.IsEnabled = false;
+                        }    
                     }
                 }
             }
@@ -91,19 +97,7 @@ namespace DiaryPro
             noteModelCollection.Insert(0, note);
             listViewNote.SelectedItem = noteModelCollection[0];
             selectedNoteIndex = 0;
-            if (noteModelCollection[selectedNoteIndex].images.Count > 0)
-            {
-                imgNote.Source = UtilityModel.BytesToImage(
-                    noteModelCollection[selectedNoteIndex].images[0].img);
-                tbImgDescript.Text = noteModelCollection[selectedNoteIndex].images[0].descript;
-                selectedImgIndex = 0;
-            }
-            else
-            {
-                imgNote.Source = null;
-                tbImgDescript.Text = "";
-                selectedImgIndex = -1;
-            }
+            tbImgDescript.IsEnabled = false;
         }
 
         private void btnDelete_Click(object sender, RoutedEventArgs e)
@@ -178,20 +172,25 @@ namespace DiaryPro
             {
                 imgNote.Source = UtilityModel.BytesToImage(
                     noteModelCollection[selectedNoteIndex].images[0].img);
+                tbImgDescript.IsEnabled = true;
                 tbImgDescript.Text = noteModelCollection[selectedNoteIndex].images[0].descript;
                 selectedImgIndex = 0;
             }
             else
             {
                 imgNote.Source = null;
+                tbImgDescript.IsEnabled = false;
                 tbImgDescript.Text = "";
                 selectedImgIndex = -1;
-            }    
+            }
+            NoteCache.Save();
+            NoteCache.Clear();
         }
 
         private void tbHeader_TextChanged(object sender, TextChangedEventArgs e)
         {
-            
+            noteModelCollection[selectedNoteIndex].header = tbHeader.Text;
+            NoteCache.Add(noteModelCollection[selectedNoteIndex]);
         }
 
         private void btnImgUp_Click(object sender, RoutedEventArgs e)
@@ -209,11 +208,27 @@ namespace DiaryPro
             imgNote.Source = UtilityModel.BytesToImage(
                 noteModelCollection[selectedNoteIndex].images[selectedImgIndex].img);
             tbImgDescript.Text = noteModelCollection[selectedNoteIndex].images[selectedImgIndex].descript;
+            ImageCache.Save();
+            ImageCache.Clear();
         }
 
         private void btnImgDown_Click(object sender, RoutedEventArgs e)
         {
-
+            if (selectedNoteIndex == -1) return;
+            if (selectedImgIndex == -1) return;
+            if (selectedImgIndex == noteModelCollection[selectedNoteIndex].images.Count - 1)
+            {
+                selectedImgIndex = 0;
+            }
+            else
+            {
+                selectedImgIndex = selectedImgIndex + 1;
+            }
+            imgNote.Source = UtilityModel.BytesToImage(
+                noteModelCollection[selectedNoteIndex].images[selectedImgIndex].img);
+            tbImgDescript.Text = noteModelCollection[selectedNoteIndex].images[selectedImgIndex].descript;
+            ImageCache.Save();
+            ImageCache.Clear();
         }
 
         private async void btnImgAdd_Click(object sender, RoutedEventArgs e)
@@ -234,6 +249,7 @@ namespace DiaryPro
             img.img = await UtilityModel.FileToByteAsync(imgFile);
             var insertID = DataAccessModel.AddData(img, noteModelCollection[selectedNoteIndex].ID);
             if (insertID == -1) return;
+            img.ID = insertID;
             // イメージファイルを表示する
             using (IRandomAccessStream fileStream = await imgFile.OpenAsync(FileAccessMode.Read))
             {
@@ -252,11 +268,28 @@ namespace DiaryPro
             {
                 selectedImgIndex = 0;
             }
+            //　イメージ説明文
+            tbImgDescript.IsEnabled = true;
+            tbImgDescript.Text = "Image Short Description";
         }
 
         private void btnImgRemove_Click(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        private void tbContent_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            noteModelCollection[selectedNoteIndex].content = tbContent.Text;
+            NoteCache.Add(noteModelCollection[selectedNoteIndex]);
+        }
+
+        private void tbImgDescript_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (selectedNoteIndex == -1) return;
+            if (selectedImgIndex == -1) return;
+            noteModelCollection[selectedNoteIndex].images[selectedImgIndex].descript = tbImgDescript.Text;
+            ImageCache.Add(noteModelCollection[selectedNoteIndex].images[selectedImgIndex]);
         }
     }
 }

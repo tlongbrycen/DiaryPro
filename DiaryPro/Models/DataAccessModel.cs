@@ -110,30 +110,6 @@ namespace DiaryPro.Models
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
 
-                foreach (ImgModel image in note.images)
-                {
-                    db.Open();
-
-                    using (SqliteCommand insertCommand = new SqliteCommand())
-                    {
-                        insertCommand.Connection = db;
-                        insertCommand.CommandText = "INSERT INTO " + DB_IMG_TABLE_NAME + " VALUES (NULL, @" + DB_IMG_TABLE_BYTES
-                        + ", @" + DB_IMG_TABLE_DESCRIPT
-                        + ", @" + DB_NOTE_TABLE_PKEY
-                        + "); ";
-                        insertCommand.Parameters.Clear();
-                        insertCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_PKEY, lastInsertID);
-                        insertCommand.Parameters.AddWithValue("@" + DB_IMG_TABLE_DESCRIPT, image.descript);
-                        insertCommand.Parameters.AddWithValue("@" + DB_IMG_TABLE_BYTES, image.img);
-                        using (var query = insertCommand.ExecuteReader()) { }
-                        insertCommand.Dispose();
-                    }
-                    db.Close();
-                    db.Dispose();
-                    GC.Collect();
-                    GC.WaitForPendingFinalizers();
-                }
-
                 return lastInsertID;
             }
         }
@@ -187,59 +163,6 @@ namespace DiaryPro.Models
             }
         }
 
-        public static ObservableCollection<NoteModel> GetAllData()
-        {
-            ObservableCollection<NoteModel> notes = new ObservableCollection<NoteModel>();
-
-            string dbpath = Path.Combine(ApplicationData.Current.LocalFolder.Path, DB_FILENAME);
-            using (SqliteConnection db =
-               new SqliteConnection($"Filename={dbpath}"))
-            {
-                db.Open();
-
-                SqliteCommand selectCommand = new SqliteCommand
-                    ("SELECT * FROM " + DB_NOTE_TABLE_NAME +
-                    " INNER JOIN " + DB_IMG_TABLE_NAME +
-                    " ON " + DB_NOTE_TABLE_NAME + "." + DB_NOTE_TABLE_PKEY + " = "
-                    + DB_IMG_TABLE_NAME + "." + DB_NOTE_TABLE_PKEY, db);
-
-                int oldNoteTableID = -1;
-                int newNoteTableID = -1;
-                NoteModel note = new NoteModel();
-                using (var query = selectCommand.ExecuteReader())
-                {
-                    while (query.Read())
-                    {
-                        var image = new ImgModel();
-                        image.descript = query.GetString(6);
-                        image.img = new byte[query.GetStream(5).Length];
-                        query.GetStream(5).CopyTo(new MemoryStream(image.img, true));
-                        newNoteTableID = query.GetInt32(0);
-                        if (newNoteTableID != oldNoteTableID)
-                        {
-                            oldNoteTableID = newNoteTableID;
-                            note = new NoteModel();
-                            notes.Add(note);
-                            note.date = query.GetString(1);
-                            note.header = query.GetString(2);
-                            note.content = query.GetString(3);
-                            note.images.Add(image);
-                        }
-                        else
-                        {
-                            note.images.Add(image);
-                        }
-                    }
-                }
-                selectCommand.Dispose();
-                db.Close();
-                db.Dispose();
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                return notes;
-            }
-        }
-
         public static ObservableCollection<NoteModel> GetData(int limit, int offset)
         {
             ObservableCollection<NoteModel> notes = new ObservableCollection<NoteModel>();
@@ -277,6 +200,7 @@ namespace DiaryPro.Models
                                 //query.GetStream(1).CopyTo(new MemoryStream(image.img, true));
                                 //byte[] buffer = GetBytes(query);
                                 image.img = GetBytes(query,1);
+                                image.ID = query.GetInt32(0);
                                 note.images.Add(image);
                             }
                         }
@@ -347,10 +271,62 @@ namespace DiaryPro.Models
                     deleteCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_PKEY, noteID);
 
                     using (var query = deleteCommand.ExecuteReader()) { }
-
-                    deleteCommand.Dispose();
                 }
 
+                db.Close();
+                db.Dispose();
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+        }
+
+        public static void UpdateData(NoteModel note)
+        {
+            string dbpath = Path.Combine(ApplicationData.Current.LocalFolder.Path, DB_FILENAME);
+            using (SqliteConnection db =
+              new SqliteConnection($"Filename={dbpath}"))
+            {
+                db.Open();
+
+                using (SqliteCommand updateCommand = new SqliteCommand())
+                {
+                    updateCommand.Connection = db;
+                    updateCommand.CommandText = "UPDATE " + DB_NOTE_TABLE_NAME +
+                        " SET " + DB_NOTE_TABLE_HEADER + " = @" + DB_NOTE_TABLE_HEADER +
+                        ", " + DB_NOTE_TABLE_CONTENT + " = @" + DB_NOTE_TABLE_CONTENT +
+                        " WHERE " + DB_NOTE_TABLE_PKEY + " = @" + DB_NOTE_TABLE_PKEY;
+                    updateCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_HEADER, note.header);
+                    updateCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_CONTENT, note.content);
+                    updateCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_PKEY, note.ID);
+                    Trace.WriteLine(updateCommand);
+                    using (var query = updateCommand.ExecuteReader()) { }
+                }
+                db.Close();
+                db.Dispose();
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+        }
+
+        public static void UpdateData(ImgModel image)
+        {
+            string dbpath = Path.Combine(ApplicationData.Current.LocalFolder.Path, DB_FILENAME);
+            using (SqliteConnection db =
+              new SqliteConnection($"Filename={dbpath}"))
+            {
+                db.Open();
+
+                using (SqliteCommand updateCommand = new SqliteCommand())
+                {
+                    updateCommand.Connection = db;
+                    updateCommand.CommandText = "UPDATE " + DB_IMG_TABLE_NAME +
+                        " SET " + DB_IMG_TABLE_DESCRIPT + " = @" + DB_IMG_TABLE_DESCRIPT +
+                        " WHERE " + DB_IMG_TABLE_PKEY + " = @" + DB_IMG_TABLE_PKEY;
+                    updateCommand.Parameters.AddWithValue("@" + DB_IMG_TABLE_DESCRIPT, image.descript);
+                    updateCommand.Parameters.AddWithValue("@" + DB_IMG_TABLE_PKEY, image.ID);
+                    Trace.WriteLine(updateCommand);
+                    using (var query = updateCommand.ExecuteReader()) { }
+                }
                 db.Close();
                 db.Dispose();
                 GC.Collect();
