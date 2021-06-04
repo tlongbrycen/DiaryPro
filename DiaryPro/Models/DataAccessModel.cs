@@ -163,7 +163,8 @@ namespace DiaryPro.Models
             }
         }
 
-        public static ObservableCollection<NoteModel> GetData(ObservableCollection<NoteModel> notes, int limit, int offset)
+        public static ObservableCollection<NoteModel> GetData(ObservableCollection<NoteModel> notes, int limit, int offset,
+            string[] filterHeaders = null)
         {
             notes.Clear();
             string dbpath = Path.Combine(ApplicationData.Current.LocalFolder.Path, DB_FILENAME);
@@ -183,7 +184,28 @@ namespace DiaryPro.Models
                             note.date = query.GetString(1);
                             note.header = query.GetString(2);
                             note.content = query.GetString(3);
-                            notes.Add(note);
+                            if(filterHeaders == null)
+                            {
+                                notes.Add(note);
+                            }
+                            else
+                            {
+                                bool matched = false;
+                                string[] headerWords = note.header.Split(' ');
+                                foreach(string headerWord in headerWords)
+                                {
+                                    foreach(string filterHeader in filterHeaders)
+                                    {
+                                        if(headerWord.ToUpper().Equals(filterHeader.ToUpper()))
+                                        {
+                                            notes.Add(note);
+                                            matched = true;
+                                            break;
+                                        }
+                                    }
+                                    if (matched) break;
+                                }
+                            }
                         }
                     }
                     foreach (NoteModel note in notes)

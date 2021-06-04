@@ -92,21 +92,25 @@
                 </Grid>
             </Grid>
             <Grid Grid.Row="1">
-                <StackPanel Margin="5, 5, 5, 5"
-                            Orientation="Horizontal"
-                            BorderBrush="#16791b"
-                            BorderThickness="2">
+                <StackPanel Orientation="Horizontal">
                     <Button x:Name="btnSearch"
-                            Margin="5,0,0,0">
+                            Margin="5,0,0,5"
+                            VerticalAlignment="Stretch"
+                            HorizontalAlignment="Stretch"
+                            Click="btnSearch_Click">
                         <Button.Background>
                             <ImageBrush ImageSource="ms-appx:///Assets/icon_search_512x512.png"
                                         Stretch="Fill"></ImageBrush>
                         </Button.Background>
                     </Button>
-                    <TextBlock x:Name="tbSearch"
-                               Text="Search"
-                               Margin="15,0,0,0"
-                               HorizontalAlignment="Right"></TextBlock>
+                    <TextBox x:Name="tbSearch"
+                               PlaceholderText="Search by header"
+                               Margin="5,0,0,5"
+                               VerticalAlignment="Stretch"
+                               FontSize="12"
+                               BorderBrush="Transparent"
+                               SelectionHighlightColor="Transparent"
+                               HorizontalAlignment="Stretch"></TextBox>
                 </StackPanel>
             </Grid>
         </Grid>

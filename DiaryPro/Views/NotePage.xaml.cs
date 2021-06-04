@@ -44,6 +44,8 @@ namespace DiaryPro
 
         private int selectedImgIndex = -1;
 
+        private string[] filterHeaders = null;
+
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             if (e.Parameter != null)
@@ -63,7 +65,7 @@ namespace DiaryPro
 
         private void LoadItemFromDB()
         {
-            noteModelCollection = DataAccessModel.GetData(noteModelCollection, MAX_RECORD_PER_PAGE, offsetRecord);
+            noteModelCollection = DataAccessModel.GetData(noteModelCollection, MAX_RECORD_PER_PAGE, offsetRecord, filterHeaders);
             if (noteModelCollection.Count > 0)
             {
                 tbHeader.Text = noteModelCollection[0].header;
@@ -335,6 +337,19 @@ namespace DiaryPro
             if (selectedImgIndex == -1) return;
             noteModelCollection[selectedNoteIndex].images[selectedImgIndex].descript = tbImgDescript.Text;
             ImageCache.Add(noteModelCollection[selectedNoteIndex].images[selectedImgIndex]);
+        }
+
+        private void btnSearch_Click(object sender, RoutedEventArgs e)
+        {
+            if (tbSearch.Text == null || tbSearch.Text == "")
+            {
+                filterHeaders = null;
+            }
+            else
+            {
+                filterHeaders = tbSearch.Text.Split(' ');
+            }
+            LoadItemFromDB();
         }
     }
 }
