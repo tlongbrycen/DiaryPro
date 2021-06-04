@@ -230,7 +230,7 @@ namespace DiaryPro.Models
             }
         }
 
-        public static void DeleteData(int noteID)
+        public static void DeleteData(NoteModel note)
         {
             string dbpath = Path.Combine(ApplicationData.Current.LocalFolder.Path, DB_FILENAME);
             using (SqliteConnection db =
@@ -245,7 +245,7 @@ namespace DiaryPro.Models
                     // Use parameterized query to prevent SQL injection attacks
                     deleteCommand.CommandText = "DELETE FROM " + DB_IMG_TABLE_NAME +
                         " WHERE " + DB_NOTE_TABLE_PKEY + " = @" + DB_NOTE_TABLE_PKEY;
-                    deleteCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_PKEY, noteID);
+                    deleteCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_PKEY, note.ID);
 
                     using (var query = deleteCommand.ExecuteReader()) { }
 
@@ -267,9 +267,38 @@ namespace DiaryPro.Models
                     deleteCommand.CommandText = "DELETE FROM " + DB_NOTE_TABLE_NAME +
                     " WHERE " + DB_NOTE_TABLE_PKEY + " = @" + DB_NOTE_TABLE_PKEY;
                     deleteCommand.Parameters.Clear();
-                    deleteCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_PKEY, noteID);
+                    deleteCommand.Parameters.AddWithValue("@" + DB_NOTE_TABLE_PKEY, note.ID);
 
                     using (var query = deleteCommand.ExecuteReader()) { }
+                }
+
+                db.Close();
+                db.Dispose();
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+        }
+
+        public static void DeleteData(ImgModel image)
+        {
+            string dbpath = Path.Combine(ApplicationData.Current.LocalFolder.Path, DB_FILENAME);
+            using (SqliteConnection db =
+              new SqliteConnection($"Filename={dbpath}"))
+            {
+                db.Open();
+
+                using (SqliteCommand deleteCommand = new SqliteCommand())
+                {
+                    deleteCommand.Connection = db;
+
+                    // Use parameterized query to prevent SQL injection attacks
+                    deleteCommand.CommandText = "DELETE FROM " + DB_IMG_TABLE_NAME +
+                        " WHERE " + DB_IMG_TABLE_PKEY + " = @" + DB_IMG_TABLE_PKEY;
+                    deleteCommand.Parameters.AddWithValue("@" + DB_IMG_TABLE_PKEY, image.ID);
+
+                    using (var query = deleteCommand.ExecuteReader()) { }
+
+                    deleteCommand.Dispose();
                 }
 
                 db.Close();

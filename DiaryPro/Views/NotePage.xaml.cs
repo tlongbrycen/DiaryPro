@@ -113,7 +113,7 @@ namespace DiaryPro
 
         private void btnDelete_Click(object sender, RoutedEventArgs e)
         {
-            DataAccessModel.DeleteData(noteModelCollection[selectedNoteIndex].ID);
+            DataAccessModel.DeleteData(noteModelCollection[selectedNoteIndex]);
             noteModelCollection.RemoveAt(selectedNoteIndex);
             if (selectedNoteIndex > 0)
             {
@@ -299,7 +299,25 @@ namespace DiaryPro
 
         private void btnImgRemove_Click(object sender, RoutedEventArgs e)
         {
-
+            if (selectedNoteIndex == -1) return;
+            if (selectedImgIndex == -1) return;
+            DataAccessModel.DeleteData(noteModelCollection[selectedNoteIndex].images[selectedImgIndex]);
+            noteModelCollection[selectedNoteIndex].images.RemoveAt(selectedImgIndex);
+            selectedImgIndex -= 1;
+            if (noteModelCollection[selectedNoteIndex].images.Count > 0)
+            {
+                if (selectedImgIndex == -1) selectedImgIndex = 0;
+                tbImgDescript.IsEnabled = true;
+                tbImgDescript.Text = noteModelCollection[selectedNoteIndex].images[selectedImgIndex].descript;
+                imgNote.Source = UtilityModel.BytesToImage(
+                        noteModelCollection[selectedNoteIndex].images[selectedImgIndex].img);
+            }
+            else
+            {
+                tbImgDescript.Text = "";
+                tbImgDescript.IsEnabled = false;
+                imgNote.Source = null;
+            }
         }
 
         private void tbContent_TextChanged(object sender, TextChangedEventArgs e)
